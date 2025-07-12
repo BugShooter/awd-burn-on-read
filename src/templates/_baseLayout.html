@@ -6,12 +6,17 @@
         <title>{% block title %}Burn on Read{% endblock %}</title>
         <link rel="stylesheet" href="/assets/css/style.css" />
     </head>
+
     <body>
         <div class="container">
             {% block content %}
                 <h1>Welcome to Burn on Read service</h1>
             {% endblock %}
         </div>
+        {% block backToHomePage %}
+            <hr />
+            <a href="/">Back to the Main Page</a>
+        {% endblock %}
         <footer>
             <p>&copy; 2025 Burn on Read</p>
         </footer>
