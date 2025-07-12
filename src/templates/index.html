@@ -1,18 +1,10 @@
 {% extends "_baseLayout.html" %}
 
 {% block content %}
-    <h1>{{ title }}</h1>
     <h2>Create your secret note</h2>
-    <form action="/" method="post">
+    <form action="/" method="post" class="note-form">
         <label for="note">Note: </label>
         <textarea id="note" name="note" placeholder="Enter your secret note here..."></textarea>
-        <input type="submit" value="OK" />
-    </form>
-
-    <h2>Get your secret note</h2>
-    <form action="/note" method="post">
-        <label for="noteId">Note ID: </label>
-        <input id="noteId" name="noteId" type="text" placeholder="Enter your secret note ID here..." />
         <input type="submit" value="OK" />
     </form>
 {% endblock %}

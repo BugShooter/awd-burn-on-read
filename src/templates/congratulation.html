@@ -1,0 +1,18 @@
+{% extends "_baseLayout.html" %}
+
+{% block content %}
+    <h2>Congratulation</h2>
+    <p>The secret note was successfully created.</p>
+    <p>Share the following link to access your note:</p>
+    <p><input type="text" name="secret" value="{{ noteUrl }}" readonly /><button id="copyButton">Copy</button></p>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        document.getElementById('copyButton').addEventListener('click', async function () {
+            const secret = document.querySelector('input[name="secret"]').value
+            console.log(secret)
+            await copyToClipboard(secret)
+        })
+    </script>
+{% endblock %}

@@ -3,7 +3,8 @@ import nunjucks from 'nunjucks'
 import type { Request, Response, NextFunction } from 'express'
 import { randomUUID } from 'node:crypto'
 import type { UUID } from 'node:crypto'
-import { isNoteExist, getNote, createNote, deleteNote } from './note.ts'
+import { isNoteExist, getNote, createNote, deleteNote } from './note.js'
+import { URL } from 'node:url'
 
 const port = process.env.PORT || 3000
 const app = express()
@@ -25,7 +26,7 @@ app.get('/', (req: Request, res: Response) => {
 
 function createNoteValidator(req: Request, res: Response, next: NextFunction) {
     if (!req.body || !req.body.note) {
-        res.status(400).render('notification.html', {
+        res.status(400).render('error.html', {
             title: '404',
             content: 'Note not found'
         })
@@ -42,17 +43,17 @@ app.post('/', createNoteValidator, async (req: Request, res: Response, next: Nex
         noteId = randomUUID()
     } while (await isNoteExist(noteId))
     console.log(`Generated note ID: ${noteId}`)
-    createNote(noteId, note)
-    res.status(200).render('notification.html', {
-        title: `Congratulations!`,
-        content: `The note with ID (${noteId}) was successfully created.`
+    await createNote(noteId, note)
+    const noteUrl = new URL(`${req.protocol}://${req.host}/note/${noteId}`)
+    res.status(200).render('congratulation.html', {
+        noteUrl
     })
 })
 
 function getNoteValidator(req: Request, res: Response, next: NextFunction) {
     //TODO: validate noteID. It must be UUID
-    if (!req.body || !req.body.noteId) {
-        res.status(400).render('notification.html', {
+    if (!req.params || !req.params.noteId) {
+        res.status(400).render('error.html', {
             title: '400',
             content: 'Bad request'
         })
@@ -60,13 +61,13 @@ function getNoteValidator(req: Request, res: Response, next: NextFunction) {
     }
     next()
 }
-app.post('/note', getNoteValidator, async (req: Request, res: Response, next: NextFunction) => {
-    const noteId = req.body.noteId as UUID
+app.get('/note/:noteId', getNoteValidator, async (req: Request, res: Response, next: NextFunction) => {
+    const noteId = req.params.noteId as UUID
     const exist = await isNoteExist(noteId)
 
     if (!exist) {
         console.log('Note not found')
-        res.status(404).render('notification.html', {
+        res.status(404).render('error.html', {
             title: '404',
             content: 'Note not found'
         })
@@ -80,6 +81,8 @@ app.post('/note', getNoteValidator, async (req: Request, res: Response, next: Ne
 
     res.render('note.html', { note })
 })
+
+app.use(express.static('src/public'))
 
 app.listen(port, () => {
     console.log(`Burn on Read is running on http://localhost:${port}`)
