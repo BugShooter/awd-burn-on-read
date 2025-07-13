@@ -27,8 +27,8 @@ app.get('/', (req: Request, res: Response) => {
 function createNoteValidator(req: Request, res: Response, next: NextFunction) {
     if (!req.body || !req.body.note) {
         res.status(400).render('error.html', {
-            title: '404',
-            content: 'Note not found'
+            title: '400',
+            content: 'Bad request'
         })
         return
     }
