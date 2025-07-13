@@ -5,8 +5,43 @@
     <form action="/" method="post" class="note-form">
         <label for="note">Note: </label>
         <textarea id="note" name="note" placeholder="Enter your secret note here..."></textarea>
+        <small id="error-message"></small>
         <input type="submit" value="OK" />
     </form>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        const noteInput = document.getElementById('note')
+        function validateNote(note) {
+            if (note && note.trim().length > 0) {
+                return true
+            }
+            error('Note cannot be empty.')
+            return false
+        }
+        function error(message) {
+            const errorMessage = document.getElementById('error-message')
+            if (!message) {
+                errorMessage.hidden = true
+                errorMessage.textContent = ''
+                noteInput.removeAttribute('aria-invalid')
+                return
+            } else {
+                errorMessage.textContent = message
+                errorMessage.hidden = false
+                noteInput.setAttribute('aria-invalid', 'true')
+            }
+        }
+        document.querySelector('.note-form').addEventListener('submit', function (event) {
+            if (!validateNote(noteInput.value)) {
+                event.preventDefault()
+            }
+        })
+        document.getElementById('note').addEventListener('input', function () {
+            error()
+        })
+    </script>
 {% endblock %}
 
 {% block backToHomePage %}

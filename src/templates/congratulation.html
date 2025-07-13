@@ -4,7 +4,11 @@
     <h2>Congratulation</h2>
     <p>The secret note was successfully created.</p>
     <p>Share the following link to access your note:</p>
-    <p><input type="text" name="secret" value="{{ noteUrl }}" readonly /><button id="copyButton">Copy</button></p>
+    <fieldset role="group">
+        <button id="toggleVisibility">Hide</button>
+        <input type="password" name="secret" value="{{ noteUrl }}" readonly />
+        <button id="copyButton">Copy</button>
+    </fieldset>
 {% endblock %}
 
 {% block scripts %}
@@ -13,6 +17,16 @@
             const secret = document.querySelector('input[name="secret"]').value
             console.log(secret)
             await copyToClipboard(secret)
+        })
+        document.getElementById('toggleVisibility').addEventListener('click', function () {
+            const input = document.querySelector('input[name="secret"]')
+            if (input.type === 'text') {
+                input.type = 'password'
+                this.textContent = 'Show'
+            } else {
+                input.type = 'text'
+                this.textContent = 'Hide'
+            }
         })
     </script>
 {% endblock %}

@@ -2,5 +2,15 @@
 
 {% block content %}
     <h2>Here is your secret note:</h2>
-    <p>{{ note }}</p>
+    <textarea readonly>{{ note }}</textarea>
+    <button id="copyButton">Copy Note</button>
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        document.getElementById('copyButton').addEventListener('click', async function () {
+            const noteText = document.querySelector('textarea').value
+            await copyToClipboard(noteText)
+        })
+    </script>
 {% endblock %}
