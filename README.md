@@ -109,6 +109,16 @@ This configuration file for TypeScript specifies the following important options
 
 5. Create a `nodemon.json` file for development:
 
+Nodemon is a tool that helps develop Node.js applications by automatically restarting the server when file changes are detected. Create a `nodemon.json` file in the root directory:
+
+```json
+{
+    "watch": ["src"],
+    "ext": "ts,json,html",
+    "ignore": ["node_modules", "dist"],
+    "exec": "ts-node src/index.ts"
+}
+
 ```json
 {
     "watch": ["src"],
