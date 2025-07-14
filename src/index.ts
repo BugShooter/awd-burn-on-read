@@ -5,7 +5,7 @@ import nunjucks from 'nunjucks'
 import type { Request, Response, NextFunction } from 'express'
 import { randomUUID } from 'node:crypto'
 import type { UUID } from 'node:crypto'
-import { isNoteExist, getNote, createNote, deleteNote } from './note.js'
+import { isNoteExist, getNote, createNote, deleteNote, setPassword } from './note.js'
 import { URL } from 'node:url'
 import sanitizeHtml from 'sanitize-html'
 import he from 'he'
@@ -40,6 +40,13 @@ function createNoteValidator(req: Request, res: Response, next: NextFunction) {
         })
         return
     }
+    if (req.body.pass && req.body.pass.trim().length < 8) {
+        res.status(400).render('error.html', {
+            title: '400',
+            content: 'Bad request: Password must be at least 8 characters'
+        })
+        return
+    }
     next()
 }
 function createNoteSanitizer(req: Request, res: Response, next: NextFunction) {
@@ -59,11 +66,18 @@ function createNoteSanitizer(req: Request, res: Response, next: NextFunction) {
         })
         return
     }
+    if (req.body.password) {
+        req.body.password = req.body.password.trim()
+    }
     next()
 }
 app.post('/', createNoteValidator, createNoteSanitizer, async (req: Request, res: Response, next: NextFunction) => {
     console.log('POST note:', req.body.note)
     const note = req.body.note
+    const password = req.body.password
+    if (password) {
+        setPassword(password);
+    }
     let noteId: UUID
     do {
         noteId = randomUUID()
@@ -71,6 +85,9 @@ app.post('/', createNoteValidator, createNoteSanitizer, async (req: Request, res
     console.log(`Generated note ID: ${noteId}`)
     await createNote(noteId, note)
     const noteUrl = new URL(`${req.protocol}://${req.host}/note/${noteId}`)
+    if (password) {
+        noteUrl.searchParams.append('password', 'true');
+    }
     res.status(200).render('congratulation.html', {
         noteUrl
     })
@@ -89,8 +106,13 @@ function getNoteValidator(req: Request, res: Response, next: NextFunction) {
 }
 app.get('/note/:noteId', getNoteValidator, async (req: Request, res: Response, next: NextFunction) => {
     const noteId = req.params.noteId as UUID
-    const exist = await isNoteExist(noteId)
+    if (req.query.password === 'true') {
+        const noteUrl = new URL(`${req.protocol}://${req.host}/noteWithPassword/${noteId}`)
+        res.render('noteWithPassword.html', { noteUrl: noteUrl.pathname });
+        return;
+    }
 
+    const exist = await isNoteExist(noteId)
     if (!exist) {
         console.log('Note not found')
         res.status(404).render('error.html', {
@@ -103,6 +125,47 @@ app.get('/note/:noteId', getNoteValidator, async (req: Request, res: Response, n
 
     await deleteNote(noteId)
     console.log(`Note ID(${noteId}) is removed`)
+    console.log(`Note: ${note}`)
+
+    res.render('note.html', { note })
+})
+
+
+function getNoteWithPasswordValidator(req: Request, res: Response, next: NextFunction) {
+    //TODO: validate noteID. It must be UUID
+    if (!req.params || !req.params.noteId) {
+        res.status(400).render('error.html', {
+            title: '400',
+            content: 'Bad request'
+        })
+        return
+    }
+    if (!req.body || !req.body.password || req.body.password.length < 8) {
+        res.status(400).render('error.html', {
+            title: '400',
+            content: 'Bad request'
+        })
+        return
+    }
+    next()
+}
+app.post('/noteWithPassword/:noteId', getNoteWithPasswordValidator, async (req: Request, res: Response, next: NextFunction) => {
+    const noteId = req.params.noteId as UUID
+    setPassword(req.body.password)
+
+    const exist = await isNoteExist(noteId)
+    if (!exist) {
+        console.log('Note not found')
+        res.status(404).render('error.html', {
+            title: '404',
+            content: 'Note not found'
+        })
+        return
+    }
+    const note = await getNote(noteId)
+
+    await deleteNote(noteId)
+    console.log(`Note ID(${noteId}) with password is removed`)
     console.log(`Note: ${note}`)
 
     res.render('note.html', { note })
