@@ -26,6 +26,11 @@ app.get('/', (req: Request, res: Response) => {
     })
 })
 
+app.get('/error', (req: Request, res: Response) => {
+    throw new Error("Test exception in a route")
+})
+
+
 function createNoteValidator(req: Request, res: Response, next: NextFunction) {
     if (!req.body || !req.body.note) {
         res.status(400).render('error.html', {
@@ -85,6 +90,15 @@ app.get('/note/:noteId', getNoteValidator, async (req: Request, res: Response, n
 })
 
 app.use(express.static('src/public'))
+
+function errorHandlerMiddleware(err: Error, req: Request, res: Response, next: NextFunction) {
+    console.error(err)
+    res.status(500).render('error.html', {
+        title: '500',
+        content: 'Server error'
+    })
+}
+app.use(errorHandlerMiddleware)
 
 app.listen(port, () => {
     console.log(`Burn on Read is running on http://localhost:${port}`)
