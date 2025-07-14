@@ -7,6 +7,8 @@ import { randomUUID } from 'node:crypto'
 import type { UUID } from 'node:crypto'
 import { isNoteExist, getNote, createNote, deleteNote } from './note.js'
 import { URL } from 'node:url'
+import sanitizeHtml from 'sanitize-html'
+import he from 'he'
 
 const port = process.env.PORT || 3000
 const app = express()
@@ -30,7 +32,6 @@ app.get('/error', (req: Request, res: Response) => {
     throw new Error("Test exception in a route")
 })
 
-
 function createNoteValidator(req: Request, res: Response, next: NextFunction) {
     if (!req.body || !req.body.note) {
         res.status(400).render('error.html', {
@@ -41,8 +42,26 @@ function createNoteValidator(req: Request, res: Response, next: NextFunction) {
     }
     next()
 }
-
-app.post('/', createNoteValidator, async (req: Request, res: Response, next: NextFunction) => {
+function createNoteSanitizer(req: Request, res: Response, next: NextFunction) {
+    // By default is used sanitisation in nunjucks template 
+    // but if you want something else here are other solutions
+    // Remove all Tags
+    // req.body.note = sanitizeHtml(req.body.note, {
+    //     allowedTags: [],
+    //     allowedAttributes: {}
+    // })
+    // Replace all Tags
+    // req.body.note = he.encode(req.body.note)
+    if (!req.body.note.trim()) {
+        res.status(400).render('error.html', {
+            title: '400',
+            content: 'Bad request'
+        })
+        return
+    }
+    next()
+}
+app.post('/', createNoteValidator, createNoteSanitizer, async (req: Request, res: Response, next: NextFunction) => {
     console.log('POST note:', req.body.note)
     const note = req.body.note
     let noteId: UUID
