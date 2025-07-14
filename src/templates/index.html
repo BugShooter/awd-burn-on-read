@@ -1,47 +1,72 @@
 {% extends "_baseLayout.html" %}
 
 {% block content %}
-    <h2>Create your secret note</h2>
-    <form action="/" method="post" class="note-form">
-        <label for="note">Note: </label>
-        <textarea id="note" name="note" placeholder="Enter your secret note here..."></textarea>
-        <small id="error-message"></small>
-        <input type="submit" value="OK" />
-    </form>
+<h2>Create your secret note</h2>
+<form action="/" method="post" class="note-form">
+    <label for="note">Note: </label>
+    <textarea id="note" name="note" placeholder="Enter your secret note here..."></textarea>
+    <small id="note-error-message"></small>
+    <input id="password" name="password" placeholder="Enter your password here..."></input>
+    <small id="password-error-message"></small>
+    <input type="submit" value="OK" />
+</form>
 {% endblock %}
 
 {% block scripts %}
-    <script>
-        const noteInput = document.getElementById('note')
-        function validateNote(note) {
-            if (note && note.trim().length > 0) {
-                return true
-            }
-            error('Note cannot be empty.')
+<script>
+    const form = document.querySelector('.note-form')
+    const noteInput = document.getElementById('note')
+    const passwordInput = document.getElementById('password')
+    function validateNote(noteInput) {
+        const note = noteInput.value.trim() || ''
+        if (note.length > 0) {
+            return true
+        }
+        error('note', noteInput, 'Note cannot be empty.')
+        return false
+    }
+    function validatePassword(passwordInput) {
+        const password = passwordInput.value.trim() || ''
+        if (password.length === 0) {
+            error('password', passwordInput, 'Password is required.')
             return false
         }
-        function error(message) {
-            const errorMessage = document.getElementById('error-message')
-            if (!message) {
-                errorMessage.hidden = true
-                errorMessage.textContent = ''
-                noteInput.removeAttribute('aria-invalid')
-                return
-            } else {
-                errorMessage.textContent = message
-                errorMessage.hidden = false
-                noteInput.setAttribute('aria-invalid', 'true')
-            }
+        if (password.length < 8) {
+            error('password', passwordInput, 'Password cannot be less than 8 characters.')
+            return false
         }
-        document.querySelector('.note-form').addEventListener('submit', function (event) {
-            if (!validateNote(noteInput.value)) {
-                event.preventDefault()
-            }
-        })
-        document.getElementById('note').addEventListener('input', function () {
-            error()
-        })
-    </script>
+        return true
+    }
+    function validateForm() {
+        let result = validateNote(noteInput)
+        result &= validatePassword(passwordInput)
+        return result
+    }
+    function error(name, element, message) {
+        const errorMessage = document.getElementById(name + '-error-message')
+        if (!message) {
+            errorMessage.hidden = true
+            errorMessage.textContent = ''
+            element.removeAttribute('aria-invalid')
+            return
+        } else {
+            errorMessage.textContent = message
+            errorMessage.hidden = false
+            element.setAttribute('aria-invalid', 'true')
+        }
+    }
+    form.addEventListener('submit', function (event) {
+        if (!validateForm()) {
+            event.preventDefault()
+        }
+    })
+    noteInput.addEventListener('input', function () {
+        error('note', noteInput)
+    })
+    passwordInput.addEventListener('input', function () {
+        error('password', passwordInput)
+    })
+</script>
 {% endblock %}
 
 {% block backToHomePage %}
