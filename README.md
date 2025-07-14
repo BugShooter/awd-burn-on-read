@@ -220,3 +220,23 @@ npm install @picocss/pico
 ```
 
 Link: [Pico.css Documentation](https://picocss.com/docs)
+
+## Tips & Tricks
+
+### How to use `dotenv` with ES modules
+To use `dotenv` with ES modules, you need to import it at the top of your entry file (e.g., `index.ts`) and call `config()`:
+
+```typescript
+import dotenv from 'dotenv'
+dotenv.config({ path: ['.env.local', '.env'] })
+
+// access environment variables like this
+// const port = process.env.PORT || 3000
+```
+
+When working with `.env` and `.env.local` files, keep in mind the following:
+
+- The `.env` file is used for default environment variables.
+- The `.env.local` file is used for local overrides and should not be committed to version control.
+- Always load the `.env.local` file first to allow for local customization.
+

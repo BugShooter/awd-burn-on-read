@@ -1,3 +1,5 @@
+import dotenv from 'dotenv'
+dotenv.config({ path: ['.env.local', '.env'] })
 import express from 'express'
 import nunjucks from 'nunjucks'
 import type { Request, Response, NextFunction } from 'express'
